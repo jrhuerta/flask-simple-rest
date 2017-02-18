@@ -17,16 +17,34 @@ class Product(db.Model):
     inventory = db.Column(db.Integer, nullable=False)
 
 
+class ProductRepository(object):
+
+    @property
+    def session(self):
+        return db.session
+
+    @property
+    def query(self):
+        return self.session.query(Product)
+
+    def get_all(self):
+        return self.query
+
+
 class ProductCollection(Resource):
+
+    def __init__(self, repository_factory):
+        self.repository = repository_factory()
 
     def get(self):
         return [{
                     'name': p.name,
                     'inventory': p.inventory
-                } for p in db.session.query(Product).all()]
+                } for p in self.repository.get_all()]
 
 
-api.add_resource(ProductCollection, '/product', endpoint='product')
+api.add_resource(ProductCollection, '/product', endpoint='product',
+                 resource_class_args=[ProductRepository])
 
 
 @app.route('/')
