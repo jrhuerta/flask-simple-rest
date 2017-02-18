@@ -17,7 +17,8 @@ class Product(db.Model):
     inventory = db.Column(db.Integer, nullable=False)
 
 
-class ProductRepository(object):
+class Repository(object):
+    model = None
 
     @property
     def session(self):
@@ -25,10 +26,15 @@ class ProductRepository(object):
 
     @property
     def query(self):
-        return self.session.query(Product)
+        assert self.model, "A model is required to use the query property."
+        return self.session.query(self.model)
 
     def get_all(self):
         return self.query
+
+
+class ProductRepository(Repository):
+    model = Product
 
 
 class ProductCollection(Resource):
