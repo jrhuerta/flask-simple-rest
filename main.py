@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api, Resource
+from marshmallow import Schema, fields
 
 
 app = Flask(__name__)
@@ -37,16 +38,17 @@ class ProductRepository(Repository):
     model = Product
 
 
+class ProductSchema(Schema):
+    name = fields.String()
+
+
 class ProductCollection(Resource):
 
     def __init__(self, repository_factory):
         self.repository = repository_factory()
 
     def get(self):
-        return [{
-                    'name': p.name,
-                    'inventory': p.inventory
-                } for p in self.repository.get_all()]
+        return ProductSchema().dump(self.repository.get_all(), many=True).data
 
 
 api.add_resource(ProductCollection, '/product', endpoint='product',
