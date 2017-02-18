@@ -1,4 +1,6 @@
-from flask import Flask
+import functools
+
+from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api, Resource
 from marshmallow import Schema, fields
@@ -42,13 +44,26 @@ class ProductSchema(Schema):
     name = fields.String()
 
 
+def marshall_with(schema, **kwargs):
+    serializer = functools.partial(schema.dump, **kwargs)
+
+    def decorator(f):
+        functools.wraps(f)
+        def inner(*args, **kwargs):
+            rv = f(*args, **kwargs)
+            return jsonify(serializer(rv).data)
+        return inner
+    return decorator
+
+
 class ProductCollection(Resource):
 
     def __init__(self, repository_factory):
         self.repository = repository_factory()
 
+    @marshall_with(ProductSchema(), many=True)
     def get(self):
-        return ProductSchema().dump(self.repository.get_all(), many=True).data
+        return self.repository.get_all()
 
 
 api.add_resource(ProductCollection, '/product', endpoint='product',
