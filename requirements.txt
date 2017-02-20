@@ -2,3 +2,4 @@ Flask
 Flask-SQLAlchemy
 Flask-RESTful
 marshmallow
+git+https://github.com/jrhuerta/flasgger.git

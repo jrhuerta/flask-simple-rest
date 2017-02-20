@@ -1,6 +1,7 @@
 import functools
 import logging
 
+from flasgger import Swagger
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api, Resource, reqparse
@@ -13,6 +14,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'
 
 api = Api(app)
 db = SQLAlchemy(app)
+db.engine.echo = True
+
+Swagger(app)
 
 
 @app.errorhandler(ValidationError)
@@ -168,6 +172,37 @@ class ProductCollection(Resource):
 
     @marshall_with(ProductCollectionSchema(), pagination=True, many=True)
     def get(self):
+        """
+        Product Resource
+        ---
+        tags:
+          - products
+        produces:
+          - application/json
+        parameters:
+          - name: term
+            description: filter products by name
+            in: query
+            type: string
+            required: false
+        responses:
+          200:
+            description: List of products
+            schema:
+                type: array
+                items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        description: Product unique id.
+                      name:
+                        type: string
+                        description: Product name.
+                      inventory:
+                        type: integer
+                        description: Number of items currently in storage.
+        """
         return self.repository.get_all()
 
     @marshall_with(ProductCollectionSchema())
